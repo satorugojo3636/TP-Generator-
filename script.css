@@ -1,167 +1,133 @@
 
-/* ---------- GLOBAL ---------- */
-body {
-    margin: 0;
-    padding: 0;
-    font-family: "Roboto", sans-serif;
-    background: #f5fdfb; 
-    color: #1a1a1a;
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: "Inter", sans-serif;
 }
 
-/* ---------- HEADER ---------- */
+body {
+  background: #f5f6f7;
+  color: #222;
+}
+
+.container {
+  max-width: 950px;
+  margin: 30px auto;
+  background: #ffffff;
+  padding: 24px 28px 40px;
+  border-radius: 18px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+}
+
 header {
-    text-align: center;
-    padding: 25px 10px;
-    background: #0ba5a5;
-    color: white;
-    border-bottom-left-radius: 18px;
-    border-bottom-right-radius: 18px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  text-align: center;
+  margin-bottom: 20px;
 }
 
 header h1 {
-    margin: 0;
-    font-size: 34px;
-    font-weight: 700;
+  font-size: 2rem;
+  font-weight: 700;
 }
 
 header p {
-    margin: 5px 0 0;
-    font-size: 16px;
-    opacity: 0.85;
+  font-size: 1rem;
+  margin-top: 6px;
+  color: #666;
 }
 
-/* ---------- MAIN CONTAINER ---------- */
-.container {
-    width: 90%;
-    max-width: 900px;
-    margin: auto;
-    padding-top: 20px;
-}
-
-/* ---------- FILE DROP AREA ---------- */
+/* File Drop */
 .file-drop-area {
-    border: 2px dashed #0ba5a5;
-    background: #eafffa;
-    padding: 25px;
-    text-align: center;
-    border-radius: 14px;
-    cursor: pointer;
-    transition: 0.25s;
-    margin-bottom: 20px;
+  border: 2px dashed #ccc;
+  border-radius: 14px;
+  padding: 20px;
+  text-align: center;
+  background: #fafafa;
+  margin-bottom: 20px;
+  cursor: pointer;
+  transition: 0.25s;
 }
 
 .file-drop-area:hover {
-    background: #d7f8f4;
+  background: #f0f0f0;
 }
 
-.file-drop-area p {
-    font-size: 15px;
-    color: #0a7a7a;
-    margin: 0;
-}
-
-.file-drop-area input {
-    display: none;
-}
-
-/* ---------- TEXTAREA ---------- */
 textarea {
-    width: 100%;
-    min-height: 150px;
-    padding: 14px;
-    font-size: 15px;
-    border: 2px solid #d7f8f4;
-    border-radius: 14px;
-    background: white;
-    resize: vertical;
-    outline: none;
-    transition: 0.25s;
+  width: 100%;
+  min-height: 150px;
+  padding: 14px;
+  margin-bottom: 20px;
+  border-radius: 12px;
+  border: 1px solid #ddd;
+  font-size: 0.95rem;
 }
 
-textarea:focus {
-    border-color: #0ba5a5;
-    box-shadow: 0 0 6px rgba(11,165,165,0.4);
-}
-
-/* ---------- BUTTONS SECTION ---------- */
+/* Buttons */
 .buttons-container {
-    margin-top: 20px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    justify-content: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  margin-bottom: 20px;
 }
 
 .buttons-container button {
-    background: linear-gradient(135deg, #0ba5a5, #0dd3c5);
-    color: white;
-    border: none;
-    padding: 12px 20px;
-    font-size: 15px;
-    border-radius: 14px;
-    cursor: pointer;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    transition: 0.25s;
+  background: #ffffff;
+  color: #222;
+  border: 1.8px solid #ddd;
+  padding: 11px 20px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: 0.25s;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.07);
 }
 
 .buttons-container button:hover {
-    transform: scale(1.05);
+  background: #f3f3f3;
+  border-color: #ccc;
+  transform: translateY(-2px);
 }
 
-/* ---------- PREVIEW BOX ---------- */
+/* Output */
 #preview-container {
-    background: white;
-    margin-top: 30px;
-    padding: 20px;
-    border-radius: 18px;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.12);
-}
-
-#preview-container h3 {
-    color: #0ba5a5;
-    margin-top: 0;
-    font-size: 22px;
+  background: #fafafa;
+  padding: 18px;
+  border-radius: 14px;
+  border: 1px solid #e5e5e5;
 }
 
 #previewText {
-    white-space: pre-wrap;
-    background: #f3fffd;
-    border-radius: 12px;
-    padding: 14px;
-    border-left: 4px solid #0ba5a5;
-    font-size: 14px;
+  white-space: pre-wrap;
+  padding: 12px;
+  background: #fff;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  min-height: 80px;
+  font-size: 0.95rem;
 }
 
-/* ---------- DIAGRAM AREA ---------- */
-#diagramContainer svg {
-    margin-top: 20px;
-    display: block;
-    width: 100%;
+#diagramContainer {
+  margin-top: 15px;
+  padding: 10px;
+  background: #fff;
+  min-height: 150px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
 }
 
-/* ---------- DOWNLOAD BUTTON ---------- */
 #downloadBtn {
-    margin-top: 20px;
-    background: #0ba5a5;
-    padding: 12px 22px;
-    border: none;
-    color: white;
-    font-size: 15px;
-    border-radius: 14px;
-    cursor: pointer;
-    font-weight: 600;
+  margin-top: 15px;
+  padding: 12px 20px;
+  background: #000;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: 0.25s;
 }
 
 #downloadBtn:hover {
-    background: #088b8b;
-}
-
-/* ---------- ICON SIZE ---------- */
-.material-icons {
-    font-size: 18px;
+  background: #333;
 }
