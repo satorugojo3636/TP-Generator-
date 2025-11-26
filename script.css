@@ -1,180 +1,166 @@
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  font-family: 'Roboto', sans-serif;
-}
-
+/* ---------- GLOBAL ---------- */
 body {
-  background: #f5f5f7;
-  color: #333;
+    margin: 0;
+    padding: 0;
+    font-family: "Roboto", sans-serif;
+    background: #f5fdfb; 
+    color: #1a1a1a;
 }
 
-.container {
-  max-width: 1000px;
-  margin: 30px auto;
-  background: #ffffff;
-  padding: 24px 24px 32px;
-  border-radius: 16px;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
-}
-
+/* ---------- HEADER ---------- */
 header {
-  text-align: center;
-  margin-bottom: 24px;
+    text-align: center;
+    padding: 25px 10px;
+    background: #0ba5a5;
+    color: white;
+    border-bottom-left-radius: 18px;
+    border-bottom-right-radius: 18px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
 header h1 {
-  font-size: 2.2rem;
-  font-weight: 700;
-  color: #1f1f1f;
+    margin: 0;
+    font-size: 34px;
+    font-weight: 700;
 }
 
 header p {
-  font-size: 1rem;
-  color: #666;
-  margin-top: 4px;
+    margin: 5px 0 0;
+    font-size: 16px;
+    opacity: 0.85;
 }
 
-/* File Drop Area */
+/* ---------- MAIN CONTAINER ---------- */
+.container {
+    width: 90%;
+    max-width: 900px;
+    margin: auto;
+    padding-top: 20px;
+}
+
+/* ---------- FILE DROP AREA ---------- */
 .file-drop-area {
-  border: 2px dashed #b3c7ff;
-  border-radius: 12px;
-  padding: 20px;
-  text-align: center;
-  margin-bottom: 16px;
-  background: #f8f9ff;
-  cursor: pointer;
-  transition: background 0.2s ease, border-color 0.2s ease;
-  position: relative;
+    border: 2px dashed #0ba5a5;
+    background: #eafffa;
+    padding: 25px;
+    text-align: center;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: 0.25s;
+    margin-bottom: 20px;
+}
+
+.file-drop-area:hover {
+    background: #d7f8f4;
 }
 
 .file-drop-area p {
-  color: #555;
-  font-size: 0.95rem;
+    font-size: 15px;
+    color: #0a7a7a;
+    margin: 0;
 }
 
-.file-drop-area input[type="file"] {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  cursor: pointer;
+.file-drop-area input {
+    display: none;
 }
 
-/* Textarea */
+/* ---------- TEXTAREA ---------- */
 textarea {
-  width: 100%;
-  min-height: 150px;
-  padding: 12px;
-  margin-bottom: 20px;
-  border-radius: 10px;
-  border: 1px solid #ddd;
-  font-size: 0.95rem;
-  resize: vertical;
-  outline: none;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    width: 100%;
+    min-height: 150px;
+    padding: 14px;
+    font-size: 15px;
+    border: 2px solid #d7f8f4;
+    border-radius: 14px;
+    background: white;
+    resize: vertical;
+    outline: none;
+    transition: 0.25s;
 }
 
 textarea:focus {
-  border-color: #0078d4;
-  box-shadow: 0 0 0 1px rgba(0, 120, 212, 0.25);
+    border-color: #0ba5a5;
+    box-shadow: 0 0 6px rgba(11,165,165,0.4);
 }
 
-/* Buttons Container */
+/* ---------- BUTTONS SECTION ---------- */
 .buttons-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  justify-content: center;
-  margin-bottom: 20px;
+    margin-top: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
 }
 
-button {
-  background: #0078d4;
-  color: #fff;
-  border: none;
-  padding: 9px 14px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 500;
-  font-size: 0.9rem;
-  transition: background 0.2s ease, transform 0.1s ease, box-shadow 0.1s ease;
-  white-space: nowrap;
+.buttons-container button {
+    background: linear-gradient(135deg, #0ba5a5, #0dd3c5);
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    font-size: 15px;
+    border-radius: 14px;
+    cursor: pointer;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    transition: 0.25s;
 }
 
-button:hover {
-  background: #005a9e;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+.buttons-container button:hover {
+    transform: scale(1.05);
 }
 
-button:active {
-  transform: translateY(0);
-  box-shadow: none;
-}
-
-/* Preview Container */
+/* ---------- PREVIEW BOX ---------- */
 #preview-container {
-  background: #f7f7f7;
-  padding: 16px;
-  border-radius: 10px;
-  word-break: break-word;
-  margin-top: 10px;
+    background: white;
+    margin-top: 30px;
+    padding: 20px;
+    border-radius: 18px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.12);
 }
 
 #preview-container h3 {
-  margin-bottom: 8px;
-  font-size: 1.05rem;
-  color: #333;
+    color: #0ba5a5;
+    margin-top: 0;
+    font-size: 22px;
 }
 
-/* Text Preview */
 #previewText {
-  white-space: pre-wrap;
-  word-wrap: break-word;
-  max-height: 350px;
-  overflow-y: auto;
-  font-size: 0.9rem;
-  line-height: 1.4;
-  padding: 8px;
-  background: #ffffff;
-  border-radius: 8px;
-  border: 1px solid #ddd;
+    white-space: pre-wrap;
+    background: #f3fffd;
+    border-radius: 12px;
+    padding: 14px;
+    border-left: 4px solid #0ba5a5;
+    font-size: 14px;
 }
 
-/* Diagram / Flowchart / Pie Chart Container */
-#diagramContainer {
-  margin-top: 15px;
-  border: 1px solid #ddd;
-  background: #ffffff;
-  padding: 10px;
-  overflow: auto;
-  min-height: 160px;
-  border-radius: 8px;
-}
-
-/* Responsive SVG */
+/* ---------- DIAGRAM AREA ---------- */
 #diagramContainer svg {
-  width: 100%;
-  height: auto;
-  max-width: 100%;
-  display: block;
-}
-
-/* Download Button */
-#downloadBtn {
-  margin-top: 12px;
-}
-
-/* Mobile Responsive */
-@media (max-width: 640px) {
-  .buttons-container {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  button {
+    margin-top: 20px;
+    display: block;
     width: 100%;
-    text-align: center;
-  }
+}
+
+/* ---------- DOWNLOAD BUTTON ---------- */
+#downloadBtn {
+    margin-top: 20px;
+    background: #0ba5a5;
+    padding: 12px 22px;
+    border: none;
+    color: white;
+    font-size: 15px;
+    border-radius: 14px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+#downloadBtn:hover {
+    background: #088b8b;
+}
+
+/* ---------- ICON SIZE ---------- */
+.material-icons {
+    font-size: 18px;
 }
