@@ -1,58 +1,58 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>TP Generator</title>
-<link rel="stylesheet" href="script.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TP Generator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="script.css">
 </head>
-
 <body>
-
-<div class="container">
-
+  <div class="container">
     <header>
-        <h1>TP Generator</h1>
-        <p>Generate clean notes, diagrams, summaries & MCQs instantly.</p>
+      <h1>TP Generator</h1>
+      <p>Generate Notes, Diagrams & PDF</p>
     </header>
 
-    <!-- File Drop -->
-    <div class="file-drop-area" onclick="document.getElementById('fileInput').click()">
-        <p>Click or Drop a .txt file here</p>
+    <main>
+      <!-- File Upload Area -->
+      <div class="file-drop-area" id="fileDropArea">
+        <p>Drag & drop a .txt file here or click to select</p>
         <input type="file" id="fileInput" accept=".txt">
-    </div>
+      </div>
 
-    <!-- Text Input -->
-    <textarea id="inputText" placeholder="Paste your text here..."></textarea>
+      <!-- Text Input -->
+      <textarea id="userText" placeholder="Or paste / type your text here..."></textarea>
 
-    <!-- Action Buttons -->
-    <div class="buttons-container">
-
-        <button onclick="previewText('Definitions')">Definitions</button>
-        <button onclick="previewText('Summary')">Summary</button>
-        <button onclick="previewText('Short Notes')">Short Notes</button>
+      <!-- Buttons Area -->
+      <div class="buttons-container">
+        <button onclick="previewText('Definitions Only')">Definitions Only</button>
+        <button onclick="previewText('Formula Sheet')">Formula Sheet</button>
+        <button onclick="previewText('Diagram-Focused Notes')">Diagram Notes</button>
         <button onclick="previewText('Exam Notes')">Exam Notes</button>
-        <button onclick="previewText('Diagram Notes')">Diagram Notes</button>
-        <button onclick="previewText('MCQs')">MCQs</button>
-        <button onclick="previewText('Flowchart')">Flowchart</button>
-        <button onclick="generatePieChart()">Pie Chart</button>
+        <button onclick="previewText('Short Notes')">Short Notes</button>
+        <button onclick="previewText('MCQs Generator')">MCQs Generator</button>
+        <button onclick="previewText('1-Page Summary')">1-Page Summary</button>
+        <button onclick="previewText('Ultra Short Notes')">Ultra Short Notes</button>
+        <button onclick="previewText('Flowchart Notes')">Flowchart Notes</button>
+        <button onclick="previewText('Descriptive Notes')">Descriptive Notes</button>
+        <button onclick="previewText('Beginner-Friendly Version')">Beginner-Friendly</button>
+        <button onclick="previewText('Pie Chart')">Pie Chart</button>
+      </div>
 
-    </div>
-
-    <!-- Output Preview -->
-    <div id="preview-container">
-        <h3>Generated Output</h3>
-        <div id="previewText"></div>
-
+      <!-- Preview Area -->
+      <div id="preview-container">
+        <h3>Preview</h3>
+        <pre id="previewText"></pre>
         <div id="diagramContainer"></div>
+        <button id="downloadBtn" style="display:none;" onclick="downloadPDF()">Download PDF</button>
+      </div>
+    </main>
+  </div>
 
-        <button id="downloadBtn" onclick="downloadPDF()">Download PDF</button>
-    </div>
-
-</div>
-
-<script src="script.js"></script>
+  <!-- jsPDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
-
-
 
