@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>TP Generator - Preview</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+  <header class="top-bar">
+    <div class="logo">TP Generator</div>
+    <button class="back-btn" onclick="window.location.href='index.html'">← Back</button>
+  </header>
+
+  <main class="container preview-layout">
+    <section class="output-section">
+      <h1 id="modeTitle">Generated Notes</h1>
+
+      <div class="output-toolbar">
+        <button id="copyBtn" class="secondary-btn">Copy Text</button>
+        <button id="downloadPdfBtn" class="primary-btn">Download PDF</button>
+      </div>
+
+      <div id="generatedText" class="output-box"></div>
+    </section>
+
+    <section class="chart-section">
+      <h2>Text/Data Analysis</h2>
+      <p class="chart-subtitle">Numeric data from text (or fallback to text length)</p>
+      <canvas id="lengthChart"></canvas>
+    </section>
+  </main>
+
+  <script>
+    const dataStr = localStorage.getItem('tpOutput');
+    if (!dataStr) {
+      document.getElementById('generatedText').innerText = 'No data found. Please go back and generate again.';
+    } else {
+      const data = JSON.parse(dataStr);
+      const { mode, originalText, generatedText } = data;
+
+      const modeMap = {
+        short_notes: 'Short Notes',
+        one_page: '1 Page Summary',
+        exam_notes: 'Exam Notes',
+        descriptive: 'Descriptive Notes'
+      };
+
+      document.getElementById('modeTitle').innerText = modeMap[mode] || 'Generated Notes';
+      const outputEl = document.getElementById('generatedText');
+      outputEl.innerText = generatedText;
+
+      // Copy button
+      document.getElementById('copyBtn').addEventListener('click', async () => {
+        try { await navigator.clipboard.writeText(generatedText); alert('Text copied to clipboard!'); }
+        catch { alert('Unable to copy. Please copy manually.'); }
+      });
+
+      // PDF download
+      document.getElementById('downloadPdfBtn').addEventListener('click', () => {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+        const margin = 40;
+        const pageWidth = doc.internal.pageSize.getWidth() - margin * 2;
+        const splitText = doc.splitTextToSize(generatedText, pageWidth);
+        doc.setFontSize(14);
+        doc.text(splitText, margin, margin + 10);
+        doc.save('tp-notes.pdf');
+      });
+
+      // Dynamic Pie Chart
+      const ctx = document.getElementById('lengthChart').getContext('2d');
+      const regex = /(\w[\w\s]*):\s*(\d+)/g;
+      let labels = [], values = [], match;
+      while ((match = regex.exec(originalText)) !== null) {
+        labels.push(match[1].trim());
+        values.push(parseFloat(match[2]));
+      }
+
+      // Fallback to text length
+      if (labels.length === 0) {
+        labels = ['Original Text','Generated Notes'];
+        values = [(originalText||'').length,(generatedText||'').length];
+      }
+
+      new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: values,
+            backgroundColor: labels.map((_,i)=>`hsl(${i*60 % 360},70%,50%)`)
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend:{ position:'bottom' } }
+        }
+      });
+    }
+  </script>
+</body>
+</html>
