@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>TP Generator</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="script.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
   <header class="top-bar">
@@ -14,9 +16,10 @@
   <main class="container">
     <section class="input-section">
       <h1>Turn Your Text into Smart Notes</h1>
-      <p class="subtitle">Paste your content below and choose the type of notes you need.</p>
+      <p class="subtitle">Upload your text files or paste content below, then choose the type of notes you need.</p>
 
-      <textarea id="inputText" placeholder="Paste or type your text here..."></textarea>
+      <input type="file" id="fileInput" multiple accept=".txt" style="margin-bottom:12px;">
+      <textarea id="inputText" placeholder="Or paste text here..."></textarea>
 
       <div class="buttons-row">
         <button class="mode-btn" data-mode="short_notes">Short Notes</button>
@@ -25,6 +28,9 @@
         <button class="mode-btn" data-mode="descriptive">Descriptive Notes</button>
       </div>
 
+      <button id="pieBtn" class="secondary-btn" style="margin-top:10px;">Generate Pie Chart</button>
+      <canvas id="lengthChart" style="margin-top:20px;"></canvas>
+
       <p id="status" class="status"></p>
     </section>
   </main>
@@ -32,4 +38,3 @@
   <script src="script.js"></script>
 </body>
 </html>
-
