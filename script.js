@@ -6,7 +6,7 @@ const { jsPDF } = window.jspdf || window.jsPDF;
 let currentFormattedText = "";
 let currentNoteType = "";
 
-// MAIN PREVIEW HANDLER
+// ============= MAIN PREVIEW HANDLER =============
 function previewText(noteType) {
   const userText = document.getElementById("userText").value.trim();
   if (!userText) {
@@ -15,38 +15,34 @@ function previewText(noteType) {
   }
 
   currentNoteType = noteType;
+
   const preview = document.getElementById("previewText");
   const diagramContainer = document.getElementById("diagramContainer");
 
-  // Clear previous
+  // Clear previous output
   preview.textContent = "";
   diagramContainer.innerHTML = "";
+  preview.style.display = "none";
 
-  // Types that use SVG diagrams
-  const diagramTypes = ["Diagram-Focused Notes", "Flowchart Notes", "Pie Chart"];
+  const diagramTypes = ["Diagram-Focused Notes", "Flowchart Notes"];
 
   if (diagramTypes.includes(noteType)) {
-    preview.style.display = "none";
-
-    if (noteType === "Pie Chart") {
-      renderPieChart(userText);
-    } else {
-      renderDiagram(userText, noteType);
-    }
+    // SVG-based outputs
+    renderDiagram(userText, noteType);
   } else {
-    // Text-based notes
-    preview.style.display = "block";
+    // Text-based outputs
     currentFormattedText = formatTextByNoteType(userText, noteType);
+    preview.style.display = "block";
     preview.textContent = currentFormattedText;
   }
 
   document.getElementById("downloadBtn").style.display = "inline-block";
 }
 
-// DOWNLOAD PDF (text OR diagram)
+// ============= DOWNLOAD PDF =============
 function downloadPDF() {
   const doc = new jsPDF("p", "pt", "a4");
-  const diagramTypes = ["Diagram-Focused Notes", "Flowchart Notes", "Pie Chart"];
+  const diagramTypes = ["Diagram-Focused Notes", "Flowchart Notes"];
 
   if (diagramTypes.includes(currentNoteType)) {
     const svgElement = document.querySelector("#diagramContainer svg");
@@ -55,36 +51,31 @@ function downloadPDF() {
       return;
     }
 
-    // Convert SVG to PNG and then add to PDF
     svgToPngDataUrl(svgElement).then((imgData) => {
       const pageWidth = doc.internal.pageSize.getWidth();
-      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 30;
+      const imgWidth = pageWidth - margin * 2;
 
-      // keep margin
-      const imgWidth = pageWidth - 40;
       const img = new Image();
       img.onload = function () {
         const ratio = img.height / img.width;
         const imgHeight = imgWidth * ratio;
-        doc.addImage(imgData, "PNG", 20, 40, imgWidth, imgHeight);
-        doc.save(`${currentNoteType.replace(/\s+/g, "_")}.pdf`);
+        doc.addImage(imgData, "PNG", margin, 40, imgWidth, imgHeight);
+        doc.save(currentNoteType.replace(/\s+/g, "_") + ".pdf");
       };
       img.src = imgData;
     });
   } else {
     // Text-based PDF
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(14);
-    doc.text(currentNoteType, 20, 30);
-
-    doc.setFontSize(11);
-    const lines = doc.splitTextToSize(currentFormattedText, 550);
-    doc.text(lines, 20, 60);
-    doc.save(`${currentNoteType.replace(/\s+/g, "_")}.pdf`);
+    doc.setFontSize(13);
+    const lines = doc.splitTextToSize(currentFormattedText, 540);
+    doc.text(lines, 30, 40);
+    doc.save(currentNoteType.replace(/\s+/g, "_") + ".pdf");
   }
 }
 
-// Helper: convert SVG element to PNG dataURL
+// Convert SVG element to PNG dataURL
 function svgToPngDataUrl(svgEl) {
   return new Promise((resolve) => {
     const xml = new XMLSerializer().serializeToString(svgEl);
@@ -105,65 +96,141 @@ function svgToPngDataUrl(svgEl) {
   });
 }
 
-// FORMAT TEXT FOR EACH NOTE TYPE
+// ============= TEXT ANALYSIS CORE =============
+
+// Split into meaningful sentences
+function extractSentences(text) {
+  return text
+    .split(/[\.\?\!\n]+/)
+    .map(s => s.trim())
+    .filter(s => s.length > 10); // ignore tiny fragments
+}
+
+// Rank sentences using simple keyword-based scoring
+function rankSentences(sentences) {
+  const scoreWords = [
+    "is", "are", "means", "refers to", "defined as", "because",
+    "therefore", "hence", "important", "key", "major", "used to",
+    "consists of", "results in", "causes"
+  ];
+
+  return sentences.map(s => {
+    const lower = s.toLowerCase();
+    let score = 0;
+    scoreWords.forEach(w => {
+      if (lower.includes(w)) score += 1;
+    });
+    // little bonus for longer (but not extremely long) sentences
+    if (s.length > 50 && s.length < 250) score += 0.5;
+    return { text: s, score };
+  });
+}
+
+// Pick top N important sentences
+function pickImportant(sentences, limit) {
+  if (sentences.length <= limit) return sentences;
+
+  const ranked = rankSentences(sentences)
+    .sort((a, b) => b.score - a.score || b.text.length - a.text.length);
+
+  return ranked.slice(0, limit).map(o => o.text);
+}
+
+// Extract formulas (lines with = or operators)
+function extractFormulas(text) {
+  return text
+    .split("\n")
+    .map(l => l.trim())
+    .filter(l =>
+      l.includes("=") ||
+      /[0-9]\s*[\+\-\*\/×÷]\s*[0-9]/.test(l)
+    )
+    .join("\n");
+}
+
+// Extract definitions: sentences containing is/are/means/defined as
+function extractDefinitions(sentences) {
+  const regex = /\b(is|are|means|refers to|defined as)\b/i;
+  const defs = sentences.filter(s => regex.test(s));
+  if (defs.length === 0) return "No clear definition-style sentences detected.";
+  return defs.map(s => "- " + s).join("\n");
+}
+
+// ============= FORMAT PER NOTE TYPE =============
 function formatTextByNoteType(text, type) {
-  const sentences = text.split('.').map(s => s.trim()).filter(Boolean);
+  const sentences = extractSentences(text);
 
   switch (type) {
     case "Definitions Only":
-      return sentences.map(s => "- " + s).join("\n");
+      return extractDefinitions(sentences);
 
     case "Formula Sheet":
-      return text
-        .split("\n")
-        .map(line => (line.includes("=") ? line.trim() : ""))
-        .filter(Boolean)
-        .join("\n");
+      return extractFormulas(text) || "No formulas detected (no '=' or math operators found).";
 
-    case "Exam Notes":
-      return sentences.slice(0, 20).join(". ") + ".";
+    case "Short Notes": {
+      const picked = pickImportant(sentences, 5);
+      return picked.join(". ") + (picked.length ? "." : "");
+    }
 
-    case "Short Notes":
-      return sentences.slice(0, 5).join(". ") + ".";
+    case "Exam Notes": {
+      const picked = pickImportant(sentences, 15);
+      return picked.join(". ") + (picked.length ? "." : "");
+    }
 
-    case "MCQs Generator":
-      return generateMCQs(text);
+    case "1-Page Summary": {
+      const picked = pickImportant(sentences, 10);
+      return picked.join(". ") + (picked.length ? "." : "");
+    }
 
-    case "1-Page Summary":
-      return sentences.slice(0, 12).join(". ") + ".";
-
-    case "Ultra Short Notes":
-      return sentences.slice(0, 25).map(s => "- " + s).join("\n");
+    case "Ultra Short Notes": {
+      const picked = pickImportant(sentences, 12);
+      return picked.map(s => "• " + s).join("\n");
+    }
 
     case "Descriptive Notes":
-      return text;
+      return text.trim();
 
-    case "Beginner-Friendly Version":
+    case "Beginner-Friendly Version": {
+      const picked = pickImportant(sentences, 12);
+      if (picked.length === 0) return text.trim();
       return "Beginner Friendly Version:\n\n" +
-             sentences.slice(0, 15).join(". ") + ".";
+             picked.join(". ") + ".";
+    }
+
+    case "MCQs Generator":
+      return generateMCQs(sentences);
 
     default:
-      return text;
+      return text.trim();
   }
 }
 
-// MCQs GENERATOR
-function generateMCQs(text) {
-  const sentences = text
-    .split('.')
-    .map(s => s.trim())
-    .filter(Boolean)
-    .filter(s => s.length > 15); // ignore very short ones
-
-  if (sentences.length === 0) return "Not enough content to generate MCQs.";
+// ============= MCQ GENERATOR =============
+function generateMCQs(sentences) {
+  const clean = sentences.filter(s => s.length > 20);
+  if (clean.length < 4) {
+    return "Not enough content to generate MCQs (need at least 4 meaningful sentences).";
+  }
 
   const letters = ["a", "b", "c", "d"];
 
-  return sentences.map((sentence, i) => {
-    const questionText = sentence.replace(/\?+$/, "");
-    const correctAnswer = questionText;
+  const mcqs = clean.map((sentence, i) => {
+    const questionBase = sentence.replace(/\s+/g, " ").trim();
 
-    let distractors = sentences.filter(s => s !== sentence);
+    // Try to convert statement into simple question
+    let questionText = questionBase;
+    const isIndex = questionBase.toLowerCase().indexOf(" is ");
+    if (isIndex !== -1) {
+      const subject = questionBase.slice(0, isIndex).trim();
+      questionText = `What is ${subject}?`;
+    } else if (questionBase.toLowerCase().startsWith("the")) {
+      questionText = `What does this statement mean: "${questionBase}"`;
+    }
+
+    const correctAnswer = questionBase;
+
+    // distractors = other sentences
+    let distractors = clean.filter(s => s !== sentence);
     shuffleArray(distractors);
     distractors = distractors.slice(0, 3);
 
@@ -171,74 +238,82 @@ function generateMCQs(text) {
     shuffleArray(options);
 
     const correctIndex = options.indexOf(correctAnswer);
-
     const optionsText = options
       .map((opt, idx) => `${letters[idx]}) ${opt}`)
       .join("\n");
 
-    return `Q${i + 1}. ${questionText}?\nOptions:\n${optionsText}\nAnswer: ${letters[correctIndex]}) ${correctAnswer}\n`;
-  }).join("\n\n");
+    return `Q${i + 1}. ${questionText}\n${optionsText}\nAnswer: ${letters[correctIndex]}) ${correctAnswer}\n`;
+  });
+
+  return mcqs.join("\n");
 }
 
-// Shuffle utility
-function shuffleArray(array) {
-  for (let i = array.length - 1; i > 0; i--) {
+// Simple array shuffle
+function shuffleArray(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
+    [arr[i], arr[j]] = [arr[j], arr[i]];
   }
 }
 
-// RENDER DIAGRAM OR FLOWCHART
+// ============= DIAGRAM & FLOWCHART =============
 function renderDiagram(text, type) {
   const diagramContainer = document.getElementById("diagramContainer");
-  const sentences = text.split('.').map(s => s.trim()).filter(Boolean);
+  const sentences = pickImportant(extractSentences(text), 8); // max 8 boxes
+
+  if (sentences.length === 0) {
+    diagramContainer.textContent = "Not enough structured information to build a diagram.";
+    return;
+  }
 
   const svgNS = "http://www.w3.org/2000/svg";
   const svg = document.createElementNS(svgNS, "svg");
+
   const width = 900;
-  let y = 30;
+  let y = 40;
 
   sentences.forEach((sentence, i) => {
-    const maxCharsPerLine = 35;
-    const lines = wrapText(sentence, maxCharsPerLine);
+    const boxWidth = 520;
+    const lines = wrapText(sentence, 40);
     const lineHeight = 18;
-    const boxPadding = 10;
-    const boxHeight = lines.length * lineHeight + boxPadding * 2;
-    const boxWidth = 420;
-
+    const paddingY = 14;
+    const boxHeight = lines.length * lineHeight + paddingY * 2;
     const x = (width - boxWidth) / 2;
 
+    // Box
     const rect = document.createElementNS(svgNS, "rect");
     rect.setAttribute("x", x);
     rect.setAttribute("y", y);
     rect.setAttribute("width", boxWidth);
     rect.setAttribute("height", boxHeight);
     rect.setAttribute("fill", "#0078d4");
-    rect.setAttribute("rx", 8);
-    rect.setAttribute("ry", 8);
+    rect.setAttribute("rx", 10);
+    rect.setAttribute("ry", 10);
     svg.appendChild(rect);
 
+    // Text inside box
     lines.forEach((line, idx) => {
-      const textElem = document.createElementNS(svgNS, "text");
-      textElem.setAttribute("x", x + boxWidth / 2);
-      textElem.setAttribute("y", y + boxPadding + (idx + 1) * lineHeight);
-      textElem.setAttribute("fill", "#ffffff");
-      textElem.setAttribute("text-anchor", "middle");
-      textElem.setAttribute("font-size", "13");
-      textElem.setAttribute("font-family", "Roboto, sans-serif");
-      textElem.textContent = line;
-      svg.appendChild(textElem);
+      const textEl = document.createElementNS(svgNS, "text");
+      textEl.setAttribute("x", x + boxWidth / 2);
+      textEl.setAttribute("y", y + paddingY + (idx + 1) * lineHeight);
+      textEl.setAttribute("fill", "#ffffff");
+      textEl.setAttribute("font-size", "13");
+      textEl.setAttribute("text-anchor", "middle");
+      textEl.setAttribute("font-family", "Roboto, sans-serif");
+      textEl.textContent = line;
+      svg.appendChild(textEl);
     });
 
+    // Arrows between boxes (for Flowchart)
     if (type === "Flowchart Notes" && i < sentences.length - 1) {
-      const lineYStart = y + boxHeight;
-      const lineYEnd = lineYStart + 20;
+      const lineY1 = y + boxHeight;
+      const lineY2 = lineY1 + 25;
 
       const line = document.createElementNS(svgNS, "line");
       line.setAttribute("x1", width / 2);
-      line.setAttribute("y1", lineYStart);
+      line.setAttribute("y1", lineY1);
       line.setAttribute("x2", width / 2);
-      line.setAttribute("y2", lineYEnd);
+      line.setAttribute("y2", lineY2);
       line.setAttribute("stroke", "#333");
       line.setAttribute("stroke-width", 2);
       svg.appendChild(line);
@@ -246,182 +321,42 @@ function renderDiagram(text, type) {
       const arrow = document.createElementNS(svgNS, "polygon");
       arrow.setAttribute(
         "points",
-        `${width / 2 - 5},${lineYEnd} ${width / 2 + 5},${lineYEnd} ${width / 2},${lineYEnd + 8}`
+        `${width / 2 - 5},${lineY2} ${width / 2 + 5},${lineY2} ${width / 2},${lineY2 + 8}`
       );
       arrow.setAttribute("fill", "#333");
       svg.appendChild(arrow);
     }
 
-    y += boxHeight + 40;
+    y += boxHeight + 45;
   });
 
   svg.setAttribute("width", "100%");
-  svg.setAttribute("height", y + 20);
-  svg.setAttribute("viewBox", `0 0 ${width} ${y + 20}`);
+  svg.setAttribute("height", y + 40);
+  svg.setAttribute("viewBox", `0 0 ${width} ${y + 40}`);
+
   diagramContainer.appendChild(svg);
 }
 
-// Wrap text for SVG
+// Wrap text into multiple lines for diagram boxes
 function wrapText(text, maxCharsPerLine) {
   const words = text.split(" ");
   const lines = [];
-  let currentLine = "";
+  let current = "";
 
   words.forEach(word => {
-    if ((currentLine + " " + word).trim().length <= maxCharsPerLine) {
-      currentLine = (currentLine + " " + word).trim();
+    if ((current + " " + word).trim().length <= maxCharsPerLine) {
+      current = (current + " " + word).trim();
     } else {
-      if (currentLine) lines.push(currentLine);
-      currentLine = word;
+      if (current) lines.push(current);
+      current = word;
     }
   });
 
-  if (currentLine) lines.push(currentLine);
+  if (current) lines.push(current);
   return lines;
 }
 
-// PIE CHART (auto, option A style)
-function renderPieChart(text) {
-  const diagramContainer = document.getElementById("diagramContainer");
-  const svgNS = "http://www.w3.org/2000/svg";
-
-  const lines = text
-    .split('\n')
-    .map(l => l.trim())
-    .filter(Boolean);
-
-  let items = [];
-  const percentPattern = /^(.*?)[\s\-:=]+(\d+(?:\.\d+)?)\s*%?$/;
-
-  lines.forEach(line => {
-    const m = line.match(percentPattern);
-    if (m) {
-      const label = m[1].trim();
-      const value = parseFloat(m[2]);
-      if (label && !isNaN(value) && value > 0) {
-        items.push({ label, value });
-      }
-    }
-  });
-
-  if (items.length === 0) {
-    const sentences = text
-      .split('.')
-      .map(s => s.trim())
-      .filter(Boolean)
-      .slice(0, 6);
-
-    if (sentences.length === 0) {
-      diagramContainer.textContent = "Not enough structured information to generate a pie chart.";
-      return;
-    }
-
-    const equalVal = 100 / sentences.length;
-    items = sentences.map(s => ({
-      label: s.length > 40 ? s.slice(0, 37) + "..." : s,
-      value: equalVal
-    }));
-  }
-
-  const total = items.reduce((sum, item) => sum + item.value, 0);
-  if (total === 0) {
-    diagramContainer.textContent = "Could not detect numeric values for pie chart.";
-    return;
-  }
-
-  items = items.map(item => ({
-    label: item.label,
-    value: (item.value / total) * 100
-  }));
-
-  const svg = document.createElementNS(svgNS, "svg");
-  const width = 900;
-  const height = 400;
-  const cx = 220;
-  const cy = 200;
-  const radius = 120;
-
-  svg.setAttribute("width", "100%");
-  svg.setAttribute("height", height);
-  svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
-
-  const colors = [
-    "#0078d4", "#00b294", "#ff8c00",
-    "#e81123", "#5c2d91", "#498205",
-    "#ffb900", "#ca5010"
-  ];
-
-  let startAngle = 0;
-
-  items.forEach((item, index) => {
-    const sliceAngle = (item.value / 100) * Math.PI * 2;
-    const endAngle = startAngle + sliceAngle;
-
-    const x1 = cx + radius * Math.cos(startAngle);
-    const y1 = cy + radius * Math.sin(startAngle);
-    const x2 = cx + radius * Math.cos(endAngle);
-    const y2 = cy + radius * Math.sin(endAngle);
-
-    const largeArcFlag = sliceAngle > Math.PI ? 1 : 0;
-
-    const pathData = [
-      `M ${cx} ${cy}`,
-      `L ${x1} ${y1}`,
-      `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}`,
-      "Z"
-    ].join(" ");
-
-    const path = document.createElementNS(svgNS, "path");
-    path.setAttribute("d", pathData);
-    path.setAttribute("fill", colors[index % colors.length]);
-    svg.appendChild(path);
-
-    const midAngle = startAngle + sliceAngle / 2;
-    const labelRadius = radius * 0.65;
-    const lx = cx + labelRadius * Math.cos(midAngle);
-    const ly = cy + labelRadius * Math.sin(midAngle);
-
-    const labelText = document.createElementNS(svgNS, "text");
-    labelText.setAttribute("x", lx);
-    labelText.setAttribute("y", ly);
-    labelText.setAttribute("fill", "#ffffff");
-    labelText.setAttribute("font-size", "10");
-    labelText.setAttribute("text-anchor", "middle");
-    labelText.setAttribute("dominant-baseline", "middle");
-    labelText.textContent = `${item.value.toFixed(1)}%`;
-    svg.appendChild(labelText);
-
-    startAngle = endAngle;
-  });
-
-  const legendX = 450;
-  let legendY = 80;
-
-  items.forEach((item, index) => {
-    const legendColorBox = document.createElementNS(svgNS, "rect");
-    legendColorBox.setAttribute("x", legendX);
-    legendColorBox.setAttribute("y", legendY);
-    legendColorBox.setAttribute("width", 16);
-    legendColorBox.setAttribute("height", 16);
-    legendColorBox.setAttribute("fill", colors[index % colors.length]);
-    svg.appendChild(legendColorBox);
-
-    const legendText = document.createElementNS(svgNS, "text");
-    legendText.setAttribute("x", legendX + 24);
-    legendText.setAttribute("y", legendY + 12);
-    legendText.setAttribute("fill", "#333333");
-    legendText.setAttribute("font-size", "12");
-    legendText.setAttribute("font-family", "Roboto, sans-serif");
-    legendText.textContent = `${item.label} (${item.value.toFixed(1)}%)`;
-    svg.appendChild(legendText);
-
-    legendY += 24;
-  });
-
-  diagramContainer.appendChild(svg);
-}
-
-// DRAG & DROP + FILE INPUT
+// ============= DRAG & DROP + FILE INPUT =============
 const fileDropArea = document.getElementById("fileDropArea");
 const fileInput = document.getElementById("fileInput");
 
